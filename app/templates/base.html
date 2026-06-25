@@ -4,18 +4,70 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Community Hero AI{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <header class="header">
-        <h1>Community Hero AI</h1>
-        <p>AI-powered civic issue reporting platform</p>
+    <header>
+        {% if admin_mode %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top civic-navbar admin-navbar shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-uppercase brand-mark text-white" href="{{ url_for('web.admin_portal') }}">Community Hero AI</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar" aria-controls="adminNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="adminNavbar">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-2">
+                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'web.admin_portal' %}active{% endif %}" href="{{ url_for('web.admin_portal') }}">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#complaintsTable">Complaints</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#analyticsSection">Analytics</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#mapSection">Map</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#settingsSection">Settings</a></li>
+                    </ul>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-light civic-btn" href="{{ url_for('web.home') }}">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        {% else %}
+        <nav class="navbar navbar-expand-sm navbar-light bg-white fixed-top civic-navbar shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-uppercase brand-mark" href="{{ url_for('web.home') }}">Community Hero AI</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-2">
+                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'web.home' %}active{% endif %}" href="{{ url_for('web.home') }}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'web.report_issue_page' %}active{% endif %}" href="{{ url_for('web.report_issue_page') }}">Report Issue</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'web.track_issues_page' %}active{% endif %}" href="{{ url_for('web.track_issues_page') }}">Track Issues</a></li>
+                        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'web.about_page' %}active{% endif %}" href="{{ url_for('web.about_page') }}">About</a></li>
+                    </ul>
+                    <a class="btn btn-success civic-btn d-inline-flex align-items-center" href="{{ url_for('web.report_issue_page') }}">Report an Issue</a>
+                </div>
+            </div>
+        </nav>
+        {% endif %}
     </header>
 
-    <main class="container">
+    <main>
         {% block content %}{% endblock %}
     </main>
 
+    <footer class="footer bg-white border-top">
+        <div class="container py-4 text-center text-lg-start d-lg-flex justify-content-between align-items-center gap-3">
+            <p class="mb-0 text-secondary small">© 2026 Community Hero AI. All rights reserved.</p>
+            {% if not admin_mode %}
+            <a href="{{ url_for('web.admin_portal') }}" class="footer-link small text-decoration-none">Municipal Access Portal</a>
+            {% endif %}
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

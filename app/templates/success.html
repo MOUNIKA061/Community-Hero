@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Submission Success | Community Hero AI{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-4">
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Success Alert Header -->
+                <div class="text-center mb-5">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle mb-3 shadow" style="width: 4.5rem; height: 4.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="bi bi-check2-circle" viewBox="0 0 16 16">
+                          <path d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z"/>
+                          <path d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z"/>
+                        </svg>
+                    </div>
+                    <h1 class="display-6 fw-extrabold text-uppercase brand-mark mb-2" style="font-weight: 800; letter-spacing: 0.05em; color: var(--civic-ink);">Complaint Logged</h1>
+                    <p class="lead text-secondary">Your community issue has been successfully registered and categorized by AI.</p>
+                </div>
+
+                <!-- Main Info Card -->
+                <div class="card civic-card border-0 shadow-lg rounded-4 mb-4 overflow-hidden">
+                    <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center">
+                        <span class="text-uppercase fw-bold tracking-wider small" style="letter-spacing: 0.1em;">Complaint Record</span>
+                        <span class="badge bg-success py-2 px-3 text-uppercase fs-6">#{{ complaint.id[:8] if complaint.id else 'N/A' }}</span>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+                        
+                        <!-- Complaint details grid -->
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6 border-end-md">
+                                <div class="mb-3">
+                                    <span class="text-muted small text-uppercase d-block fw-semibold mb-1">Issue Category</span>
+                                    <span class="fs-5 fw-bold text-dark d-inline-flex align-items-center">
+                                        <span class="badge bg-success text-white me-2">{{ complaint.category }}</span>
+                                    </span>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-muted small text-uppercase d-block fw-semibold mb-1">Assigned Department</span>
+                                    <span class="fs-6 fw-bold text-dark d-inline-flex align-items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-building me-2 text-success" viewBox="0 0 16 16">
+                                          <path fill-rule="evenodd" d="M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .342-.474L6 7.64V1.1a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 .487.022zM6 8.694 1 10.36V15h5V8.694zM7 15h2v-1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5V15h2V1.309L7 4.309V15z"/>
+                                          <path d="M2 11h1v1H2v-1zm2 0h1v1H4v-1zm-2 2h1v1H2v-1zm2 0h1v1H4v-1z"/>
+                                        </svg>
+                                        {{ complaint.department }}
+                                    </span>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-muted small text-uppercase d-block fw-semibold mb-1">Severity Rating</span>
+                                    <span class="fs-6 fw-bold">
+                                        {% if complaint.severity == 'High' %}
+                                        <span class="text-danger">● High Priority</span>
+                                        {% elif complaint.severity == 'Medium' %}
+                                        <span class="text-warning">● Medium Priority</span>
+                                        {% else %}
+                                        <span class="text-info">● Low Priority</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-muted small text-uppercase d-block fw-semibold mb-1">Status</span>
+                                    <span class="badge bg-light text-success border border-success px-3 py-2 fw-bold text-uppercase">{{ complaint.status }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <span class="text-muted small text-uppercase d-block fw-semibold mb-1">Report Description</span>
+                                    <p class="text-dark mb-0 fs-6">{{ complaint.description }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-muted small text-uppercase d-block fw-semibold mb-1">Coordinates Location</span>
+                                    <p class="text-secondary mb-0 small">
+                                        <strong>Lat:</strong> {{ complaint.latitude | round(6) }}<br>
+                                        <strong>Lng:</strong> {{ complaint.longitude | round(6) }}
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="text-muted small text-uppercase d-block fw-semibold mb-1">Logged Date</span>
+                                    <p class="text-secondary mb-0 small">{{ complaint.created_at[:19].replace('T', ' ') if complaint.created_at else 'N/A' }} UTC</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Media Preview Box -->
+                        <div class="mb-4">
+                            <span class="text-muted small text-uppercase d-block fw-semibold mb-3">Submitted Media Evidence</span>
+                            <div class="bg-light p-3 rounded-3 border text-center shadow-inner overflow-hidden" style="max-height: 400px; display: flex; align-items: center; justify-content: center;">
+                                {% if complaint.media_type and complaint.media_type.startswith('video/') %}
+                                <video src="{{ complaint.media_url }}" controls class="img-fluid rounded shadow-sm" style="max-height: 360px;"></video>
+                                {% else %}
+                                <img src="{{ complaint.media_url }}" alt="Complaint media evidence" class="img-fluid rounded shadow-sm" style="max-height: 360px; object-fit: contain;">
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Action Bar -->
+                    <div class="card-footer bg-light p-4 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                        <a href="{{ url_for('web.track_issues_page') }}" class="btn btn-outline-dark civic-btn w-100 w-sm-auto">Track All Issues</a>
+                        <a href="{{ url_for('web.report_issue_page') }}" class="btn btn-success civic-btn w-100 w-sm-auto">Report Another Issue</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
