@@ -3,18 +3,188 @@
 {% block title %}Track Issues | Community Hero AI{% endblock %}
 
 {% block content %}
-<section class="py-5 mt-5">
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card civic-card border-0 shadow-sm rounded-4">
-                    <div class="card-body p-4 p-md-5">
-                        <h2 class="h3 fw-bold mb-3">Track Submitted Issues</h2>
-                        <p class="text-secondary mb-0">Monitor status updates from report submission through municipal review and resolution.</p>
+<section class="py-5 mt-4">
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-6 fw-extrabold text-uppercase brand-mark mb-2" style="font-weight: 800; letter-spacing: 0.05em; color: var(--civic-ink);">Track Community Issues</h1>
+            <p class="lead text-secondary">Browse issues reported by fellow citizens, track their progress, and upvote unresolved items to expedite action.</p>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="card civic-card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label for="searchInput" class="form-label fw-semibold">Search issues</label>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by category, description or department...">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="statusFilter" class="form-label fw-semibold">Filter by status</label>
+                        <select id="statusFilter" class="form-select">
+                            <option value="all">All Statuses</option>
+                            <option value="Reported">Reported</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Grid of Issues -->
+        <div class="row g-4" id="issuesContainer">
+            {% for complaint in complaints %}
+            <div class="col-12 col-md-6 issue-card-col" 
+                 data-search-text="{{ complaint.category|lower }} {{ complaint.description|lower }} {{ complaint.department|lower }}"
+                 data-status="{{ complaint.status }}">
+                <div class="card civic-card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative">
+                    
+                    <!-- Media element -->
+                    <div style="height: 220px; overflow: hidden; position: relative; background: #e5e7eb;">
+                        {% if complaint.media_type and complaint.media_type.startswith('video/') %}
+                        <video src="{{ complaint.media_url }}" class="w-100 h-100" style="object-fit: cover;" muted playsinline></video>
+                        {% else %}
+                        <img src="{{ complaint.media_url }}" class="w-100 h-100" style="object-fit: cover;" alt="Evidence">
+                        {% endif %}
+                        
+                        <!-- Status badge overlaid -->
+                        <span class="position-absolute top-3 start-3 badge admin-status-badge status-{{ complaint.status|lower|replace(' ', '-') }} shadow-sm" style="z-index: 5;">
+                            {{ complaint.status }}
+                        </span>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h2 class="h5 fw-bold text-dark mb-0">{{ complaint.category }}</h2>
+                            <small class="text-secondary">{{ complaint.created_at | time_ago }}</small>
+                        </div>
+                        
+                        <p class="text-secondary small mb-3" style="min-height: 48px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ complaint.description or 'No description provided.' }}
+                        </p>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <small class="text-muted text-uppercase d-block fw-semibold mb-1" style="font-size: 0.7rem;">Priority</small>
+                                {% if complaint.priority == 'Critical' %}
+                                <span class="priority-badge priority-critical" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;">🔥 Critical</span>
+                                {% elif complaint.priority == 'High' %}
+                                <span class="priority-badge priority-high" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;">🔴 High</span>
+                                {% elif complaint.priority == 'Medium' %}
+                                <span class="priority-badge priority-medium" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;">🟡 Medium</span>
+                                {% else %}
+                                <span class="priority-badge priority-low" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;">🔵 Low</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted text-uppercase d-block fw-semibold mb-1" style="font-size: 0.7rem;">Department</small>
+                                <span class="badge bg-light text-dark border py-2 px-2 text-truncate" style="font-size: 0.75rem; display: block; max-width: 100%;">
+                                    {{ complaint.department }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <hr class="text-black-50 my-3">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-dark fs-6">👍 <span id="supportCount-{{ complaint.id }}">{{ complaint.support_count }}</span></span>
+                                <small class="text-secondary">upvotes</small>
+                            </div>
+                            
+                            {% if complaint.status != 'Resolved' %}
+                            <button class="btn btn-success btn-sm btn-support-upvote px-3 py-2 d-inline-flex align-items-center gap-1"
+                                    data-complaint-id="{{ complaint.id }}"
+                                    id="btnSupport-{{ complaint.id }}">
+                                <span class="spinner-border spinner-border-sm d-none" id="spinnerSupport-{{ complaint.id }}" role="status" aria-hidden="true"></span>
+                                <span id="btnText-{{ complaint.id }}">👍 Support</span>
+                            </button>
+                            {% else %}
+                            <span class="badge bg-light text-success border border-success px-3 py-2">Resolved</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not complaints %}
+        <div class="text-center py-5">
+            <div class="fs-1 mb-3">📭</div>
+            <h3 class="h4 fw-bold">No issues reported yet</h3>
+            <p class="text-secondary">Be the first to report an issue in your community!</p>
+            <a href="{{ url_for('web.report_issue_page') }}" class="btn btn-success civic-btn px-4 py-2 mt-2">Report an Issue</a>
+        </div>
+        {% endif %}
     </div>
 </section>
+
+<!-- Front-end script for upvoting and searching -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const cardCols = Array.from(document.querySelectorAll(".issue-card-col"));
+    const issuesContainer = document.getElementById("issuesContainer");
+
+    // Filter Logic
+    function applyFilters() {
+        const query = searchInput.value.toLowerCase();
+        const status = statusFilter.value;
+
+        cardCols.forEach(col => {
+            const matchesSearch = col.dataset.searchText.includes(query);
+            const matchesStatus = status === "all" || col.dataset.status === status;
+            col.classList.toggle("d-none", !(matchesSearch && matchesStatus));
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener("input", applyFilters);
+    if (statusFilter) statusFilter.addEventListener("change", applyFilters);
+
+    // Dynamic Upvote Logic
+    if (issuesContainer) {
+        issuesContainer.addEventListener("click", async (e) => {
+            const btn = e.target.closest(".btn-support-upvote");
+            if (!btn) return;
+
+            const complaintId = btn.dataset.complaintId;
+            const spinner = document.getElementById(`spinnerSupport-${complaintId}`);
+            const btnText = document.getElementById(`btnText-${complaintId}`);
+            const countSpan = document.getElementById(`supportCount-${complaintId}`);
+
+            btn.disabled = true;
+            if (spinner) spinner.classList.remove("d-none");
+            if (btnText) btnText.textContent = "Supporting...";
+
+            try {
+                const res = await fetch(`/api/v1/issues/${complaintId}/support`, {
+                    method: "POST"
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || "Failed to submit support");
+                }
+                if (countSpan) {
+                    countSpan.textContent = data.support_count;
+                }
+                
+                // Highlight button as clicked/success
+                btn.classList.remove("btn-success");
+                btn.classList.add("btn-outline-success");
+                if (btnText) btnText.textContent = "Supported";
+            } catch (err) {
+                alert(err.message);
+                btn.disabled = false;
+                if (btnText) btnText.textContent = "👍 Support";
+            } finally {
+                if (spinner) spinner.classList.add("d-none");
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

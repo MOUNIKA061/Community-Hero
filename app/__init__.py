@@ -50,6 +50,35 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     register_blueprints(app)
     register_error_handlers(app)
 
+    @app.template_filter("time_ago")
+    def time_ago_filter(value):
+        if not value:
+            return "N/A"
+        try:
+            from datetime import datetime, timezone
+            val_str = str(value)
+            if val_str.endswith("Z"):
+                val_str = val_str[:-1] + "+00:00"
+            dt = datetime.fromisoformat(val_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            now = datetime.now(timezone.utc)
+            diff = now - dt
+            seconds = diff.total_seconds()
+            if seconds < 0 or seconds < 60:
+                return "just now"
+            elif seconds < 3600:
+                minutes = int(seconds // 60)
+                return f"{minutes} min{'s' if minutes > 1 else ''} ago"
+            elif seconds < 86400:
+                hours = int(seconds // 3600)
+                return f"{hours} hour{'s' if hours > 1 else ''} ago"
+            else:
+                days = int(seconds // 86400)
+                return f"{days} day{'s' if days > 1 else ''} ago"
+        except Exception:
+            return value
+
     @app.get("/")
     def index():
         return render_template("index.html")

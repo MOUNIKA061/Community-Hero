@@ -5,6 +5,23 @@ from flask import Blueprint, abort, jsonify, render_template, request
 web_bp = Blueprint("web", __name__)
 
 
+def _add_priority_to_complaint(complaint: dict) -> dict:
+    severity = complaint.get("severity") or "Medium"
+    support_count = int(complaint.get("support_count") or 1)
+    
+    if support_count >= 10 or (severity == "High" and support_count >= 5):
+        priority = "Critical"
+    elif severity == "High" or support_count >= 3:
+        priority = "High"
+    elif severity == "Medium":
+        priority = "Medium"
+    else:
+        priority = "Low"
+        
+    complaint["priority"] = priority
+    return complaint
+
+
 @web_bp.get("/")
 def home():
     return render_template("index.html")
@@ -17,7 +34,16 @@ def report_issue_page():
 
 @web_bp.get("/track-issues")
 def track_issues_page():
-    return render_template("track_issues.html")
+    from app.services.firestore_service import list_complaints
+    try:
+        complaints = list_complaints()
+    except Exception:
+        complaints = []
+    
+    for complaint in complaints:
+        _add_priority_to_complaint(complaint)
+        
+    return render_template("track_issues.html", complaints=complaints)
 
 
 @web_bp.get("/about")
@@ -33,6 +59,10 @@ def admin_portal():
         complaints = list_complaints()
     except Exception:
         complaints = []
+
+    for complaint in complaints:
+        _add_priority_to_complaint(complaint)
+
     summary = {
         "total": len(complaints),
         "reported": sum(1 for complaint in complaints if complaint.get("status") == "Reported"),
@@ -70,6 +100,7 @@ def admin_update_status(complaint_id):
         from app.services.firestore_service import update_complaint_status
 
         updated_complaint = update_complaint_status(complaint_id, status)
+        _add_priority_to_complaint(updated_complaint)
         return jsonify(updated_complaint), 200
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
@@ -84,5 +115,7 @@ def success_page(complaint_id):
     complaint = get_complaint(complaint_id)
     if not complaint:
         abort(404)
+    _add_priority_to_complaint(complaint)
     return render_template("success.html", complaint=complaint)
+
 

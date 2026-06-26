@@ -289,19 +289,99 @@ body {
 }
 
 .status-reported {
-    background: rgba(255, 193, 7, 0.15);
-    color: #b58100;
+    background: rgba(108, 117, 125, 0.12);
+    color: #6c757d;
 }
 
 .status-in-progress {
-    background: rgba(13, 110, 253, 0.12);
-    color: #0d6efd;
+    background: rgba(255, 193, 7, 0.15);
+    color: #b58100;
 }
 
 .status-resolved {
     background: rgba(25, 135, 84, 0.14);
     color: #198754;
 }
+
+/* Priority Badges styling */
+.priority-badge {
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.priority-critical {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+.priority-high {
+    background: rgba(253, 126, 20, 0.15);
+    color: #fd7e14;
+}
+
+.priority-medium {
+    background: rgba(13, 110, 253, 0.12);
+    color: #0d6efd;
+}
+
+.priority-low {
+    background: rgba(108, 117, 125, 0.12);
+    color: #6c757d;
+}
+
+/* Google Map Rich InfoWindow styling */
+.map-info-card {
+    max-width: 250px;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    padding: 0.25rem;
+}
+.map-info-img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+    background: #f3f5f7;
+    border: 1px solid #e5e7eb;
+}
+.map-info-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: #17313f;
+}
+.map-info-desc {
+    font-size: 0.8rem;
+    color: #5f6f78;
+    margin-bottom: 0.5rem;
+    line-height: 1.35;
+}
+.map-info-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+/* Citizen Upvoting buttons */
+.btn-support-upvote {
+    border-radius: 999px;
+    font-weight: 700;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.btn-support-upvote:hover {
+    transform: scale(1.04);
+}
+
 
 .detail-chip {
     background: #f8fafb;
@@ -590,5 +670,61 @@ body {
     width: 1.2rem;
     height: 1.2rem;
     border-width: 0.15em;
+}
+
+/* ───────────────────────────────
+   AI Municipal Officer Recommendation
+─────────────────────────────── */
+.ai-rec-banner {
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #1a2f3f 100%);
+    border-bottom: 1px solid rgba(0, 200, 117, 0.25);
+}
+
+.ai-rec-chip {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    height: 100%;
+}
+
+.ai-rec-risk {
+    border-color: rgba(255, 193, 7, 0.3);
+    background: rgba(255, 193, 7, 0.07);
+}
+
+/* AI Priority Badges */
+.ai-priority-badge {
+    font-size: 0.8rem;
+    padding: 0.4em 0.75em;
+    border-radius: 50rem;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+}
+
+.ai-priority-critical {
+    background: linear-gradient(135deg, #dc3545, #b02a37);
+    color: #fff;
+    animation: pulse-glow 2s infinite;
+}
+
+.ai-priority-high {
+    background: #fd7e14;
+    color: #fff;
+}
+
+.ai-priority-medium {
+    background: #ffc107;
+    color: #212529;
+}
+
+.ai-priority-low {
+    background: #0dcaf0;
+    color: #212529;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
 }
 

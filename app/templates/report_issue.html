@@ -121,6 +121,36 @@
     </div>
 </section>
 
+<!-- Duplicate Warning Modal -->
+<div class="modal fade" id="duplicateModal" tabindex="-1" aria-labelledby="duplicateModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold" id="duplicateModalLabel">⚠️ Duplicate Issue Reported Nearby</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btnDuplicateClose"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div id="duplicateMediaContainer" class="mb-3" style="max-height: 200px; overflow: hidden; border-radius: 0.5rem; background: #f8faf9; display: flex; align-items: center; justify-content: center;">
+                    <img id="duplicateImage" class="img-fluid rounded d-none" style="max-height: 180px; object-fit: contain;" alt="Existing complaint evidence">
+                    <video id="duplicateVideo" class="img-fluid rounded d-none" style="max-height: 180px; object-fit: contain;" controls></video>
+                </div>
+                <p class="fw-semibold mb-2">An issue of the same category has already been reported nearby!</p>
+                <p class="text-secondary small mb-4" id="duplicateDetailsText"></p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success btn-lg civic-btn py-3" id="btnSupportDuplicate">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="supportSpinner"></span>
+                        👍 Support Existing Report
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill py-2" id="btnForceSubmit">
+                        Report Anyway (Create New)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Client JavaScript -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -320,6 +350,17 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const duplicateModal = new bootstrap.Modal(document.getElementById("duplicateModal"));
+        const btnSupportDuplicate = document.getElementById("btnSupportDuplicate");
+        const btnForceSubmit = document.getElementById("btnForceSubmit");
+        const duplicateImage = document.getElementById("duplicateImage");
+        const duplicateVideo = document.getElementById("duplicateVideo");
+        const duplicateDetailsText = document.getElementById("duplicateDetailsText");
+        const supportSpinner = document.getElementById("supportSpinner");
+
+        let duplicateId = null;
+        let duplicatePayload = null;
+
         // Loading states
         btnSubmit.disabled = true;
         submitSpinner.classList.remove("d-none");
@@ -352,7 +393,37 @@ document.addEventListener("DOMContentLoaded", () => {
             return response.json();
         })
         .then(data => {
-            window.location.href = data.redirect_url || `/success/${data.id}`;
+            if (data.duplicate_found) {
+                duplicateId = data.existing_complaint.id;
+                duplicatePayload = {
+                    force: true,
+                    media_url: data.media_url,
+                    media_type: data.media_type,
+                    category: data.category,
+                    severity: data.severity,
+                    department: data.department,
+                    description: data.description,
+                    latitude: data.latitude,
+                    longitude: data.longitude
+                };
+
+                // Show duplicate evidence preview
+                if (data.existing_complaint.media_type && data.existing_complaint.media_type.startsWith("video/")) {
+                    duplicateImage.classList.add("d-none");
+                    duplicateVideo.classList.remove("d-none");
+                    duplicateVideo.src = data.existing_complaint.media_url;
+                } else {
+                    duplicateVideo.classList.add("d-none");
+                    duplicateVideo.src = "";
+                    duplicateImage.classList.remove("d-none");
+                    duplicateImage.src = data.existing_complaint.media_url;
+                }
+
+                duplicateDetailsText.textContent = `A similar "${data.category}" report has been logged ${data.distance_meters} meters away with ${data.existing_complaint.support_count || 1} citizen upvotes. Upvoting this report will alert the assigned department (${data.existing_complaint.department || 'Other'}) and increase its priority.`;
+                duplicateModal.show();
+            } else {
+                window.location.href = data.redirect_url || `/success/${data.id}`;
+            }
         })
         .catch(err => {
             // Error Handling
@@ -371,6 +442,54 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("description").disabled = false;
             btnGetLocation.disabled = false;
             if (btnRemovePreview) btnRemovePreview.disabled = false;
+        });
+    });
+
+    // Support and Force Submit handlers
+    const btnSupportDuplicate = document.getElementById("btnSupportDuplicate");
+    const btnForceSubmit = document.getElementById("btnForceSubmit");
+    const duplicateModalEl = document.getElementById("duplicateModal");
+    const supportSpinner = document.getElementById("supportSpinner");
+
+    btnSupportDuplicate.addEventListener("click", () => {
+        if (!duplicateId) return;
+        btnSupportDuplicate.disabled = true;
+        supportSpinner.classList.remove("d-none");
+
+        fetch(`/api/v1/issues/${duplicateId}/support`, {
+            method: "POST"
+        })
+        .then(res => res.json())
+        .then(data => {
+            window.location.href = data.redirect_url;
+        })
+        .catch(err => {
+            alert("Error: " + err.message);
+            btnSupportDuplicate.disabled = false;
+            supportSpinner.classList.add("d-none");
+        });
+    });
+
+    btnForceSubmit.addEventListener("click", () => {
+        if (!duplicatePayload) return;
+        btnForceSubmit.disabled = true;
+        
+        fetch("/api/v1/issues/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(duplicatePayload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            const modalInstance = bootstrap.Modal.getInstance(duplicateModalEl);
+            if (modalInstance) modalInstance.hide();
+            window.location.href = data.redirect_url;
+        })
+        .catch(err => {
+            alert("Error forcing submission: " + err.message);
+            btnForceSubmit.disabled = false;
         });
     });
 });

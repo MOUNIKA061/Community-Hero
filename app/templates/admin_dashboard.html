@@ -7,14 +7,18 @@
     <div class="container">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
             <div>
-                <p class="text-uppercase text-success fw-semibold mb-2 admin-eyebrow">Municipal Operations</p>
-                <h1 class="display-6 fw-bold mb-2">Admin Dashboard</h1>
+                <p class="text-uppercase text-success fw-semibold mb-2 admin-eyebrow">Community Hero AI</p>
+                <h1 class="display-6 fw-bold mb-2">Municipal Control Center</h1>
                 <p class="text-secondary mb-0">Monitor complaints, update status, and inspect the AI-assisted report details.</p>
             </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <span class="badge bg-light text-dark border px-3 py-2">Bootstrap 5</span>
-                <span class="badge bg-light text-dark border px-3 py-2">Firestore Live</span>
-                <span class="badge bg-light text-dark border px-3 py-2">Gemini Pipeline</span>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <span class="badge bg-success-soft text-success border px-3 py-2 d-inline-flex align-items-center gap-1">
+                    <span class="bg-success rounded-circle" style="width: 8px; height: 8px; display: inline-block;"></span>
+                    AI Online
+                </span>
+                <span class="text-secondary small">
+                    Last Synced: <strong>just now</strong>
+                </span>
             </div>
         </div>
 
@@ -66,7 +70,7 @@
             </div>
         </div>
 
-        <div class="row g-4 mb-4" id="analyticsSection">
+        <div class="row g-4 mb-4" id="recentSection">
             <div class="col-12 col-xl-8">
                 <div class="card admin-panel border-0 shadow-sm h-100">
                     <div class="card-body p-4 p-lg-4">
@@ -80,14 +84,22 @@
                             <div class="recent-complaint-item d-flex gap-3 align-items-start">
                                 <div class="recent-complaint-dot"></div>
                                 <div class="flex-grow-1">
-                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
                                         <div>
-                                            <div class="fw-semibold">{{ complaint.category }} detected</div>
-                                            <div class="text-secondary small">{{ complaint.description[:100] if complaint.description else 'No description provided.' }}</div>
+                                            <div class="text-secondary small mb-1">🕒 {{ complaint.created_at | time_ago }}</div>
+                                            <div class="fw-bold text-dark fs-6">{{ complaint.category }}</div>
+                                            <div class="small text-secondary mt-1">
+                                                {% if complaint.severity == 'High' %}
+                                                <span class="text-danger fw-semibold">🔴 High Severity</span>
+                                                {% elif complaint.severity == 'Medium' %}
+                                                <span class="text-warning fw-semibold">🟡 Medium Severity</span>
+                                                {% else %}
+                                                <span class="text-info fw-semibold">🔵 Low Severity</span>
+                                                {% endif %}
+                                            </div>
                                         </div>
-                                        <div class="text-md-end">
+                                        <div>
                                             <span class="badge admin-status-badge status-{{ complaint.status|lower|replace(' ', '-') }}">{{ complaint.status }}</span>
-                                            <div class="text-secondary small mt-1">{{ complaint.created_at[:19].replace('T', ' ') if complaint.created_at else 'N/A' }}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -124,6 +136,47 @@
                         <div class="small text-secondary">Markers are created from complaint latitude and longitude values.</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Analytics Overview Section -->
+        <div class="card admin-panel border-0 shadow-sm mb-4" id="analyticsSection">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-4">Analytics Overview</h2>
+                {% if complaints %}
+                <div class="row g-4">
+                    <div class="col-12 col-md-4">
+                        <div class="bg-light rounded p-3 text-center h-100">
+                            <h3 class="h6 fw-semibold mb-3">Complaint Categories</h3>
+                            <div style="position: relative; height:240px; width:100%">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="bg-light rounded p-3 text-center h-100">
+                            <h3 class="h6 fw-semibold mb-3">Complaint Status</h3>
+                            <div style="position: relative; height:240px; width:100%">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="bg-light rounded p-3 text-center h-100">
+                            <h3 class="h6 fw-semibold mb-3">Department Distribution</h3>
+                            <div style="position: relative; height:240px; width:100%">
+                                <canvas id="departmentChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-secondary">
+                    <div class="fs-1 mb-2">📊</div>
+                    <h3 class="h6 fw-bold">No analytics data available</h3>
+                    <p class="mb-0">Analytics charts will render once complaints are submitted.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -165,25 +218,20 @@
             <div class="card-header bg-white border-0 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 py-3">
                 <h2 class="h5 fw-bold mb-0">Complaints</h2>
                 <div class="d-flex gap-2 flex-wrap">
-                    <span class="badge bg-light text-dark border px-3 py-2">Image Thumbnail</span>
-                    <span class="badge bg-light text-dark border px-3 py-2">AI Classified</span>
-                    <span class="badge bg-light text-dark border px-3 py-2">Immediate Firestore Updates</span>
+                    <span class="badge bg-light text-dark border px-3 py-2">Community Submissions</span>
                 </div>
             </div>
             <div class="table-responsive">
                 <table class="table align-middle mb-0 admin-table">
                     <thead class="table-light">
                         <tr>
-                            <th>Complaint ID</th>
-                            <th>Image Thumbnail</th>
-                            <th>Category</th>
-                            <th>Severity</th>
-                            <th>Department</th>
-                            <th>Latitude</th>
-                            <th>Longitude</th>
-                            <th>Support Count</th>
-                            <th>Current Status</th>
-                            <th>Created Time</th>
+                            <th>Image</th>
+                            <th>Issue</th>
+                            <th>Severity (AI)</th>
+                            <th>Priority</th>
+                            <th class="text-end">👍 Support</th>
+                            <th>Status</th>
+                            <th>Reported</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -194,8 +242,8 @@
                             data-severity="{{ complaint.severity }}"
                             data-status="{{ complaint.status }}"
                             data-latitude="{{ complaint.latitude }}"
-                            data-longitude="{{ complaint.longitude }}">
-                            <td class="text-nowrap"><span class="fw-semibold">#{{ complaint.id[:8] }}</span></td>
+                            data-longitude="{{ complaint.longitude }}"
+                            data-priority="{{ complaint.priority }}">
                             <td>
                                 <div class="admin-thumb-wrap">
                                     {% if complaint.media_type and complaint.media_type.startswith('video/') %}
@@ -206,21 +254,37 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="fw-semibold">{{ complaint.category }}</div>
-                                <span class="badge bg-light text-dark border mt-1">AI Classified</span>
+                                <div class="fw-bold text-dark">{{ complaint.category }}</div>
+                                <small class="text-secondary d-block">ID: #{{ complaint.id[:8] if complaint.id else 'N/A' }}</small>
                             </td>
-                            <td>{{ complaint.severity }}</td>
-                            <td>{{ complaint.department }}</td>
-                            <td>{{ complaint.latitude }}</td>
-                            <td>{{ complaint.longitude }}</td>
-                            <td>{{ complaint.support_count }}</td>
+                            <td>
+                                {% if complaint.severity == 'High' %}
+                                <span class="text-danger fw-semibold">High</span>
+                                {% elif complaint.severity == 'Medium' %}
+                                <span class="text-warning fw-semibold">Medium</span>
+                                {% else %}
+                                <span class="text-info fw-semibold">Low</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if complaint.priority == 'Critical' %}
+                                <span class="priority-badge priority-critical">🔥 Critical</span>
+                                {% elif complaint.priority == 'High' %}
+                                <span class="priority-badge priority-high">🔴 High</span>
+                                {% elif complaint.priority == 'Medium' %}
+                                <span class="priority-badge priority-medium">🟡 Medium</span>
+                                {% else %}
+                                <span class="priority-badge priority-low">🔵 Low</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end fw-bold text-secondary">{{ complaint.support_count }}</td>
                             <td>
                                 <span class="badge admin-status-badge status-{{ complaint.status|lower|replace(' ', '-') }}" id="statusBadge-{{ complaint.id }}">{{ complaint.status }}</span>
                             </td>
-                            <td class="text-nowrap">{{ complaint.created_at[:19].replace('T', ' ') if complaint.created_at else 'N/A' }}</td>
+                            <td class="text-nowrap text-secondary small">{{ complaint.created_at | time_ago }}</td>
                             <td class="text-end text-nowrap">
                                 <button type="button"
-                                        class="btn btn-outline-success btn-sm"
+                                        class="btn btn-outline-success btn-sm civic-btn px-3"
                                         data-bs-toggle="modal"
                                         data-bs-target="#complaintModal"
                                         data-complaint='{{ complaint | tojson }}'>
@@ -243,6 +307,7 @@
     </div>
 </section>
 
+
 <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
@@ -253,57 +318,122 @@
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 p-lg-5">
-                <div class="row g-4">
-                    <div class="col-lg-6">
-                        <div class="modal-media-wrap mb-3">
-                            <img id="modalMediaImage" class="img-fluid rounded d-none" alt="Complaint media">
-                            <video id="modalMediaVideo" class="img-fluid rounded d-none" controls></video>
+            <div class="modal-body p-0">
+                <!-- AI Recommendation Banner -->
+                <div id="aiRecSection" class="ai-rec-banner px-4 px-lg-5 py-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="fs-4">🤖</span>
+                        <div>
+                            <div class="fw-bold text-white fs-6">AI Municipal Officer Recommendation</div>
+                            <div class="text-white-50 small">Generated by Google Gemini AI</div>
                         </div>
-                        <div class="bg-light rounded p-3">
-                            <div class="small text-secondary text-uppercase fw-semibold mb-2">AI Generated Description</div>
-                            <p class="mb-0" id="modalDescription"></p>
+                        <span class="ms-auto badge ai-priority-badge" id="modalAIPriority"></span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="ai-rec-chip">
+                                <div class="small text-white-50 text-uppercase fw-semibold mb-1">✅ Recommended Action</div>
+                                <div class="text-white fw-semibold" id="modalRecAction">—</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="ai-rec-chip">
+                                <div class="small text-white-50 text-uppercase fw-semibold mb-1">⏱ Estimated Completion</div>
+                                <div class="text-white fw-semibold" id="modalEstCompletion">—</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="ai-rec-chip">
+                                <div class="small text-white-50 text-uppercase fw-semibold mb-2">🔧 Resources Needed</div>
+                                <div id="modalResources" class="d-flex flex-wrap gap-1"></div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="ai-rec-chip ai-rec-risk">
+                                <div class="small text-white-50 text-uppercase fw-semibold mb-1">⚠️ Risk if Delayed</div>
+                                <div class="text-warning fw-semibold" id="modalRiskDelayed">—</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="detail-chip">
-                                    <span class="small text-secondary text-uppercase fw-semibold d-block">Category</span>
-                                    <strong id="modalCategory"></strong>
-                                </div>
+                </div>
+
+                <!-- Main modal body -->
+                <div class="p-4 p-lg-5">
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="modal-media-wrap mb-3">
+                                <img id="modalMediaImage" class="img-fluid rounded d-none" alt="Complaint media">
+                                <video id="modalMediaVideo" class="img-fluid rounded d-none" controls></video>
                             </div>
-                            <div class="col-6">
-                                <div class="detail-chip">
-                                    <span class="small text-secondary text-uppercase fw-semibold d-block">Severity</span>
-                                    <strong id="modalSeverity"></strong>
-                                </div>
+                            <div class="bg-light rounded p-3">
+                                <div class="small text-secondary text-uppercase fw-semibold mb-2">AI Generated Description</div>
+                                <p class="mb-0" id="modalDescription"></p>
                             </div>
-                            <div class="col-12">
-                                <div class="detail-chip">
-                                    <span class="small text-secondary text-uppercase fw-semibold d-block">Department</span>
-                                    <strong id="modalDepartment"></strong>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Category</span>
+                                        <strong id="modalCategory"></strong>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="detail-chip">
-                                    <span class="small text-secondary text-uppercase fw-semibold d-block">GPS Location</span>
-                                    <strong id="modalLocation"></strong>
+                                <div class="col-6">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Severity (AI)</span>
+                                        <strong id="modalSeverity"></strong>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="detail-chip">
-                                    <span class="small text-secondary text-uppercase fw-semibold d-block">Current Status</span>
-                                    <strong id="modalStatusText"></strong>
+                                <div class="col-6">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Priority</span>
+                                        <span id="modalPriority"></span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12">
-                                <label for="modalStatusSelect" class="form-label fw-semibold">Update Status</label>
-                                <select id="modalStatusSelect" class="form-select">
-                                    <option value="Reported">Reported</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Resolved">Resolved</option>
-                                </select>
+                                <div class="col-6">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">👍 Support Count</span>
+                                        <strong id="modalSupportCount"></strong>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Department</span>
+                                        <strong id="modalDepartment"></strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Latitude</span>
+                                        <strong id="modalLatitude"></strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Longitude</span>
+                                        <strong id="modalLongitude"></strong>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Created Time</span>
+                                        <strong id="modalCreatedTime"></strong>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="detail-chip">
+                                        <span class="small text-secondary text-uppercase fw-semibold d-block">Current Status</span>
+                                        <strong id="modalStatusText" class="badge bg-light text-dark"></strong>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="modalStatusSelect" class="form-label fw-semibold">Update Status</label>
+                                    <select id="modalStatusSelect" class="form-select">
+                                        <option value="Reported">Reported</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -325,13 +455,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalDescription = document.getElementById("modalDescription");
     const modalCategory = document.getElementById("modalCategory");
     const modalSeverity = document.getElementById("modalSeverity");
+    const modalPriority = document.getElementById("modalPriority");
+    const modalSupportCount = document.getElementById("modalSupportCount");
     const modalDepartment = document.getElementById("modalDepartment");
-    const modalLocation = document.getElementById("modalLocation");
+    const modalLatitude = document.getElementById("modalLatitude");
+    const modalLongitude = document.getElementById("modalLongitude");
+    const modalCreatedTime = document.getElementById("modalCreatedTime");
     const modalStatusText = document.getElementById("modalStatusText");
     const modalStatusSelect = document.getElementById("modalStatusSelect");
     const modalMediaImage = document.getElementById("modalMediaImage");
     const modalMediaVideo = document.getElementById("modalMediaVideo");
     const saveStatusButton = document.getElementById("saveStatusButton");
+    // AI Recommendation elements
+    const modalAIPriority = document.getElementById("modalAIPriority");
+    const modalRecAction = document.getElementById("modalRecAction");
+    const modalEstCompletion = document.getElementById("modalEstCompletion");
+    const modalResources = document.getElementById("modalResources");
+    const modalRiskDelayed = document.getElementById("modalRiskDelayed");
 
     const filterCategory = document.getElementById("filterCategory");
     const filterSeverity = document.getElementById("filterSeverity");
@@ -340,16 +480,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const mapElement = document.getElementById("complaintsMap");
     const mapFallback = document.getElementById("adminMapFallback");
     const hasGoogleMapsKey = {{ 'true' if google_maps_api_key else 'false' }};
-    const complaintData = rows
-        .map((row) => ({
-            id: row.dataset.complaintId,
-            category: row.dataset.category,
-            severity: row.dataset.severity,
-            status: row.dataset.status,
-            latitude: parseFloat(row.dataset.latitude),
-            longitude: parseFloat(row.dataset.longitude)
-        }))
-        .filter((complaint) => !Number.isNaN(complaint.latitude) && !Number.isNaN(complaint.longitude));
+    
+    const complaintsList = {{ complaints | tojson | safe }};
+    const complaintData = complaintsList.filter(c => c.latitude !== null && c.longitude !== null);
 
     let mapInstance = null;
 
@@ -404,21 +537,120 @@ document.addEventListener("DOMContentLoaded", () => {
 
         complaintData.forEach((complaint) => {
             const marker = new google.maps.Marker({
-                position: { lat: complaint.latitude, lng: complaint.longitude },
+                position: { lat: parseFloat(complaint.latitude), lng: parseFloat(complaint.longitude) },
                 map: mapInstance,
                 title: complaint.category
             });
 
+            const contentString = `
+                <div class="map-info-card">
+                    ${complaint.media_url ? `
+                        <div class="mb-2" style="height: 100px; overflow: hidden; border-radius: 0.25rem;">
+                            ${complaint.media_type && complaint.media_type.startsWith("video/") ? `
+                                <video src="${complaint.media_url}" style="width: 100%; height: 100%; object-fit: cover;" muted playsinline></video>
+                            ` : `
+                                <img src="${complaint.media_url}" style="width: 100%; height: 100%; object-fit: cover;" alt="Evidence">
+                            `}
+                        </div>
+                    ` : ''}
+                    <div class="map-info-title">📍 ${complaint.category}</div>
+                    <div class="map-info-desc">${complaint.description ? (complaint.description.length > 70 ? complaint.description.substring(0, 70) + '...' : complaint.description) : 'No description.'}</div>
+                    <div class="small mb-1 text-secondary"><strong>Dept:</strong> ${complaint.department || 'Other'}</div>
+                    <div class="small mb-2 text-secondary"><strong>Severity:</strong> ${complaint.severity || 'Medium'}</div>
+                    <div class="map-info-meta">
+                        <span class="badge admin-status-badge status-${complaint.status.toLowerCase().replace(/\s+/g, '-')}">${complaint.status}</span>
+                        <strong class="text-secondary small">👍 ${complaint.support_count || 1}</strong>
+                    </div>
+                </div>
+            `;
+
             const infoWindow = new google.maps.InfoWindow({
-                content: `<strong>${complaint.category}</strong><br>${complaint.status}<br>${complaint.latitude}, ${complaint.longitude}`
+                content: contentString
             });
 
-            marker.addListener("click", () => infoWindow.open({ anchor: marker, map: mapInstance }));
+            marker.addListener("click", () => {
+                infoWindow.open({ anchor: marker, map: mapInstance });
+            });
         });
     };
 
     if (!hasGoogleMapsKey || !complaintData.length) {
         showMapFallback();
+    }
+
+    if (complaintsList.length > 0) {
+        const catCounts = {};
+        const statusCounts = { 'Reported': 0, 'In Progress': 0, 'Resolved': 0 };
+        const deptCounts = {};
+        
+        complaintsList.forEach(c => {
+            const cat = c.category || 'Other';
+            catCounts[cat] = (catCounts[cat] || 0) + 1;
+            
+            const stat = c.status || 'Reported';
+            statusCounts[stat] = (statusCounts[stat] || 0) + 1;
+            
+            const dept = c.department || 'Other';
+            deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+        });
+
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(catCounts),
+                datasets: [{
+                    data: Object.values(catCounts),
+                    backgroundColor: ['#6f42c1', '#fd7e14', '#0d6efd', '#20c997', '#e83e8c', '#6c757d']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusCounts),
+                datasets: [{
+                    data: Object.values(statusCounts),
+                    backgroundColor: ['#6c757d', '#ffc107', '#198754']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Inter', size: 10 } } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('departmentChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(deptCounts),
+                datasets: [{
+                    data: Object.values(deptCounts),
+                    backgroundColor: '#00c875',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
     }
 
     filterCategory.addEventListener("change", applyFilters);
@@ -434,11 +666,68 @@ document.addEventListener("DOMContentLoaded", () => {
         modalDescription.textContent = complaint.description || "No description provided.";
         modalCategory.textContent = complaint.category || "Other";
         modalSeverity.textContent = complaint.severity || "Medium";
+        
+        let priorityClass = 'priority-badge priority-low';
+        if (complaint.priority === 'Critical') priorityClass = 'priority-badge priority-critical';
+        else if (complaint.priority === 'High') priorityClass = 'priority-badge priority-high';
+        else if (complaint.priority === 'Medium') priorityClass = 'priority-badge priority-medium';
+        
+        modalPriority.className = priorityClass;
+        modalPriority.textContent = complaint.priority === 'Critical' ? '🔥 Critical' :
+                                    complaint.priority === 'High' ? '🔴 High' :
+                                    complaint.priority === 'Medium' ? '🟡 Medium' : '🔵 Low';
+
+        modalSupportCount.textContent = complaint.support_count || 1;
         modalDepartment.textContent = complaint.department || "Other";
-        modalLocation.textContent = `${complaint.latitude}, ${complaint.longitude}`;
+        modalLatitude.textContent = complaint.latitude;
+        modalLongitude.textContent = complaint.longitude;
+        modalCreatedTime.textContent = complaint.created_at ? complaint.created_at.replace("T", " ").substring(0, 19) + " UTC" : "N/A";
+        
         modalStatusText.textContent = complaint.status || "Reported";
+        modalStatusText.className = `badge admin-status-badge status-${(complaint.status || 'Reported').toLowerCase().replace(/\s+/g, '-')}`;
         modalStatusSelect.value = complaint.status || "Reported";
         saveStatusButton.dataset.complaintId = complaint.id;
+
+        // --- AI Municipal Officer Recommendation ---
+        const recAction = complaint.recommended_action || "";
+        const estCompletion = complaint.estimated_completion || "";
+        const resources = complaint.resources_needed || [];
+        const riskDelayed = complaint.risk_if_delayed || "";
+        const aiPriority = complaint.ai_priority_score || "";
+
+        const hasRec = recAction || estCompletion || resources.length || riskDelayed || aiPriority;
+        const aiRecSection = document.getElementById("aiRecSection");
+        if (hasRec) {
+            aiRecSection.classList.remove("d-none");
+            modalRecAction.textContent = recAction || "—";
+            modalEstCompletion.textContent = estCompletion || "—";
+            modalRiskDelayed.textContent = riskDelayed || "—";
+
+            // Render resources as pill badges
+            modalResources.innerHTML = "";
+            const resList = Array.isArray(resources) ? resources : [];
+            if (resList.length > 0) {
+                resList.forEach(r => {
+                    const badge = document.createElement("span");
+                    badge.className = "badge bg-white text-dark border";
+                    badge.textContent = r;
+                    modalResources.appendChild(badge);
+                });
+            } else {
+                modalResources.innerHTML = "<span class='text-white-50'>Not specified</span>";
+            }
+
+            // AI Priority badge colour
+            modalAIPriority.textContent = aiPriority || "";
+            modalAIPriority.className = "ms-auto badge ai-priority-badge";
+            if (aiPriority === "Critical") modalAIPriority.classList.add("ai-priority-critical");
+            else if (aiPriority === "High") modalAIPriority.classList.add("ai-priority-high");
+            else if (aiPriority === "Medium") modalAIPriority.classList.add("ai-priority-medium");
+            else modalAIPriority.classList.add("ai-priority-low");
+        } else {
+            aiRecSection.classList.add("d-none");
+        }
+        // --- End AI Recommendation ---
 
         if (complaint.media_type && complaint.media_type.startsWith("video/")) {
             modalMediaImage.classList.add("d-none");
@@ -482,6 +771,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             modalStatusText.textContent = data.status;
+            modalStatusText.className = `badge admin-status-badge status-${data.status.toLowerCase().replace(/\s+/g, '-')}`;
             updateSummaryCards();
             applyFilters();
         } catch (error) {
@@ -495,6 +785,8 @@ document.addEventListener("DOMContentLoaded", () => {
     applyFilters();
 });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 {% if google_maps_api_key %}
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initAdminDashboardMap"></script>
